@@ -3,15 +3,28 @@ const mongoose = require("mongoose");
 const NodeCache = require("node-cache");
 const path = require("path");
 const fs = require("fs");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 // Create Express app
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Initialize node-cache with 24-hour TTL (86400 seconds)
 const cache = new NodeCache({ stdTTL: 86400 });
 
+// Apply security headers using Helmet
+app.use(helmet());
+
+// Rate limiter middleware (limits requests to avoid DoS attacks)
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 20, // Limit each IP to 50 requests per windowMs
+  message: "Too many requests, please try again later.",
+});
+
+app.use(limiter);
 // MongoDB connection
 mongoose.connect(process.env.DB_CONNECTION_STRING, {
   useNewUrlParser: true,
