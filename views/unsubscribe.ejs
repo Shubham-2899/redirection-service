@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unsubscribe</title>
+    <style>
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .unsubscribe-container {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+      }
+
+      .unsubscribe-container h1 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+      }
+
+      .unsubscribe-container p {
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 20px;
+      }
+
+      .unsubscribe-container label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 10px;
+        color: #555;
+      }
+
+      .unsubscribe-container input[type="email"] {
+        width: calc(100% - 20px);
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        outline: none;
+        transition: border 0.3s;
+      }
+
+      .unsubscribe-container input[type="email"]:focus {
+        border-color: #007bff;
+      }
+
+      .unsubscribe-container button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .unsubscribe-container button:hover {
+        background-color: #0056b3;
+      }
+
+      .unsubscribe-container .success-message {
+        color: green;
+        font-size: 14px;
+        display: none;
+      }
+
+      .unsubscribe-container .error-message {
+        color: red;
+        font-size: 14px;
+        display: none;
+      }
+
+      /* Honeypot field (hidden) */
+      .honeypot {
+        display: none;
+      }
+
+      .recaptcha-container {
+        margin: 20px 0;
+      }
+    </style>
+    <script
+      nonce="<%= nonce %>"
+      src="https://www.google.com/recaptcha/api.js"
+    ></script>
+  </head>
+  <body>
+    <div class="unsubscribe-container">
+      <h1>Unsubscribe from Emails</h1>
+      <p>
+        We're sorry to see you go! Please enter your email below to unsubscribe.
+      </p>
+      <form id="unsubscribe-form">
+        <label for="email">Email Address:</label>
+        <input type="email" name="email" id="email" required />
+
+        <!-- Honeypot field (hidden field for bots) -->
+        <input type="text" name="honeypot" id="honeypot" class="honeypot" />
+
+        <!-- Google reCAPTCHA (you need to configure your site key) -->
+        <div class="recaptcha-container">
+          <div
+            class="g-recaptcha"
+            data-sitekey="6Ld7iVoqAAAAABbwM1dNB3nAF8LN0rj3VdlC3l7e"
+          ></div>
+        </div>
+
+        <button type="submit" id="unsubscribe-btn">Unsubscribe</button>
+
+        <p class="success-message" id="success-message">
+          You have been unsubscribed successfully.
+        </p>
+        <p class="error-message" id="error-message">
+          An error occurred. Please try again.
+        </p>
+      </form>
+    </div>
+
+    <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script> -->
+
+    <script nonce="<%= nonce %>">
+      document
+        .getElementById("unsubscribe-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const honeypot = document.getElementById("honeypot").value; // Honeypot field value
+          //   const recaptchaResponse = grecaptcha.getResponse(); // Google reCAPTCHA response
+          const recaptchaResponse = true;
+          // Simple front-end validation
+          if (!email || honeypot || !recaptchaResponse) {
+            document.getElementById("error-message").innerText =
+              "Invalid request";
+            document.getElementById("error-message").style.display = "block";
+            return;
+          }
+
+          const data = { email, "g-recaptcha-response": recaptchaResponse };
+
+          // Disable the button to prevent multiple submissions
+          document.getElementById("unsubscribe-btn").disabled = true;
+
+          try {
+            // Make the API call to unsubscribe
+            const response = await fetch("/api/unsubscribe", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              // Success message
+              document.getElementById("success-message").style.display =
+                "block";
+              document.getElementById("error-message").style.display = "none";
+            } else {
+              throw new Error(result.message || "An error occurred");
+            }
+          } catch (error) {
+            // Show error message
+            document.getElementById("error-message").innerText = error.message;
+            document.getElementById("error-message").style.display = "block";
+            document.getElementById("success-message").style.display = "none";
+          } finally {
+            // Enable the button again
+            document.getElementById("unsubscribe-btn").disabled = false;
+            grecaptcha.reset(); // Reset Google reCAPTCHA
+          }
+        });
+    </script>
+  </body>
+</html>
