@@ -9,6 +9,7 @@ const checkCache = (req, res, next) => {
   if (cachedUrl) {
     const ipAddress = req.ip;
     const userAgent = req.get("User-Agent");
+    console.log("cache hit for shortId:", shortId);
 
     // Store click asynchronously even if cache is hit
     Url.findOneAndUpdate(
