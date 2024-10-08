@@ -2,9 +2,9 @@
   "name": "redirection-service",
   "version": "1.0.0",
   "description": "Redirection service for mms portal",
-  "main": "server1.js",
+  "main": "src/server1.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node src/server1.js",
     "dev": "nodemon src/server1.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
