@@ -96,9 +96,11 @@
         margin: 20px 0;
       }
     </style>
+
+    <!-- Include reCAPTCHA v3 script -->
     <script
       nonce="<%= nonce %>"
-      src="https://www.google.com/recaptcha/api.js"
+      src="https://www.google.com/recaptcha/api.js?render=6LfQp1sqAAAAALsJEpZYpcAJNrOzA0WXt8axFXqF"
     ></script>
   </head>
   <body>
@@ -114,13 +116,7 @@
         <!-- Honeypot field (hidden field for bots) -->
         <input type="text" name="honeypot" id="honeypot" class="honeypot" />
 
-        <!-- Google reCAPTCHA (you need to configure your site key) -->
-        <div class="recaptcha-container">
-          <div
-            class="g-recaptcha"
-            data-sitekey="6Ld7iVoqAAAAABbwM1dNB3nAF8LN0rj3VdlC3l7e"
-          ></div>
-        </div>
+        <!-- reCAPTCHA v3 is invisible but executes in the background -->
 
         <button type="submit" id="unsubscribe-btn">Unsubscribe</button>
 
@@ -133,8 +129,6 @@
       </form>
     </div>
 
-    <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script> -->
-
     <script nonce="<%= nonce %>">
       document
         .getElementById("unsubscribe-form")
@@ -142,52 +136,65 @@
           e.preventDefault();
 
           const email = document.getElementById("email").value;
-          const honeypot = document.getElementById("honeypot").value; // Honeypot field value
-          //   const recaptchaResponse = grecaptcha.getResponse(); // Google reCAPTCHA response
-          const recaptchaResponse = true;
+          const honeypot = document.getElementById("honeypot").value;
+
           // Simple front-end validation
-          if (!email || honeypot || !recaptchaResponse) {
+          if (!email || honeypot) {
             document.getElementById("error-message").innerText =
               "Invalid request";
             document.getElementById("error-message").style.display = "block";
             return;
           }
 
-          const data = { email, "g-recaptcha-response": recaptchaResponse };
+          // Trigger reCAPTCHA v3
+          grecaptcha.ready(async function () {
+            const recaptchaToken = await grecaptcha.execute(
+              "6LfQp1sqAAAAALsJEpZYpcAJNrOzA0WXt8axFXqF",
+              {
+                action: "unsubscribe",
+              }
+            );
 
-          // Disable the button to prevent multiple submissions
-          document.getElementById("unsubscribe-btn").disabled = true;
+            // Prepare data for submission
+            const data = {
+              email,
+              "g-recaptcha-response": recaptchaToken,
+            };
 
-          try {
-            // Make the API call to unsubscribe
-            const response = await fetch("/api/unsubscribe", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data),
-            });
+            // Disable the button to prevent multiple submissions
+            document.getElementById("unsubscribe-btn").disabled = true;
 
-            const result = await response.json();
+            try {
+              // Make the API call to unsubscribe
+              const response = await fetch("/api/unsubscribe", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              });
 
-            if (response.ok) {
-              // Success message
-              document.getElementById("success-message").style.display =
-                "block";
-              document.getElementById("error-message").style.display = "none";
-            } else {
-              throw new Error(result.message || "An error occurred");
+              const result = await response.json();
+
+              if (response.ok) {
+                // Success message
+                document.getElementById("success-message").style.display =
+                  "block";
+                document.getElementById("error-message").style.display = "none";
+              } else {
+                throw new Error(result.message || "An error occurred");
+              }
+            } catch (error) {
+              // Show error message
+              document.getElementById("error-message").innerText =
+                error.message;
+              document.getElementById("error-message").style.display = "block";
+              document.getElementById("success-message").style.display = "none";
+            } finally {
+              // Enable the button again
+              document.getElementById("unsubscribe-btn").disabled = false;
             }
-          } catch (error) {
-            // Show error message
-            document.getElementById("error-message").innerText = error.message;
-            document.getElementById("error-message").style.display = "block";
-            document.getElementById("success-message").style.display = "none";
-          } finally {
-            // Enable the button again
-            document.getElementById("unsubscribe-btn").disabled = false;
-            grecaptcha.reset(); // Reset Google reCAPTCHA
-          }
+          });
         });
     </script>
   </body>

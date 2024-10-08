@@ -48,6 +48,7 @@ router.post("/api/unsubscribe", apiLimiter, async (req, res) => {
   try {
     // const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
     const isRecaptchaValid = true;
+    console.log("🚀 ~ router.post ~ isRecaptchaValid:", isRecaptchaValid);
     if (!isRecaptchaValid) {
       return res.status(400).json({ message: "reCAPTCHA verification failed" });
     }
