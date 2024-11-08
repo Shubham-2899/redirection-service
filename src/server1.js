@@ -21,6 +21,13 @@ app.use(rateLimiter);
 
 // MongoDB connection
 mongoose.connect(config.dbConnectionString);
+mongoose.connection.on("connected", () => {
+  console.log("Connected to DB");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("DB connection error:", err);
+});
 
 // Set EJS as the view engine
 app.set("view engine", "ejs");
