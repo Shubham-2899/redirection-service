@@ -32,7 +32,7 @@ exports.redirectUrl = async (req, res) => {
       cache.set(shortId, urlEntry.redirectURL);
       return res.redirect(urlEntry.redirectURL);
     } else {
-      return serveIndexEJS(res);
+      return serveOfferEndEJS(res);
     }
   } catch (err) {
     console.error("Error fetching URL:", err);
@@ -42,4 +42,8 @@ exports.redirectUrl = async (req, res) => {
 
 const serveIndexEJS = (res) => {
   res.render("index"); // Render the index.ejs template
+};
+
+const serveOfferEndEJS = (res) => {
+  res.render("offerend"); // Render the offerend.ejs template
 };
