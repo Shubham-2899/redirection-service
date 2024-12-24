@@ -8,6 +8,7 @@ const {
 } = require("../middlewares/security");
 const { verifyRecaptcha } = require("../services/recaptchaService");
 const Email_list = require("../models/Email_list");
+const contentRoute = require("./contentRoute");
 
 const router = express.Router();
 
@@ -23,6 +24,9 @@ router.get("/unsubscribe", (req, res) => {
   console.log("inside unsubscribe route");
   res.render("unsubscribe"); // Render unsubscribe page
 });
+
+// Route for displaying unsubscribe page
+router.get("/content", contentRoute);
 
 // Route for displaying main page
 router.get("/", (req, res) => {
