@@ -30,9 +30,12 @@ router.get("/content/:data", apiLimiter, async (req, res) => {
     // Serve the transparent pixel
     servePixel(res);
 
+    // Get the IP address of the request
+    const ip = req.ip;
+
     // If valid data is found, update the database asynchronously
     if (campaignId && offerId) {
-      updateTrackingData(campaignId, offerId, req);
+      updateTrackingData(campaignId, offerId, ip);
     } else {
       console.warn("Invalid Request: Missing campaignId or offerId", {
         campaignId,

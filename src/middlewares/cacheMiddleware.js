@@ -1,6 +1,6 @@
 const NodeCache = require("node-cache");
 const Url = require("../models/Url");
-const cache = new NodeCache({ stdTTL: 86400 });
+const cache = new NodeCache({ stdTTL: 86400, checkperiod: 1800 });
 
 const checkCache = (req, res, next) => {
   const shortId = req.params.shortId;
