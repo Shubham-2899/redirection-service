@@ -26,7 +26,7 @@ router.get("/unsubscribe", (req, res) => {
 });
 
 // Route for displaying unsubscribe page
-router.get("/content", contentRoute);
+router.get("/content/*", contentRoute);
 
 // Route for displaying main page
 router.get("/", (req, res) => {

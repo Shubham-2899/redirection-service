@@ -1,6 +1,11 @@
 const express = require("express");
-const { serveTrackingPixel } = require("../services/contentService");
+const {
+  servePixel,
+  updateTrackingData,
+} = require("../services/contentService");
 const apiLimiter = require("../middlewares/rateLimiter");
+const querystring = require("querystring");
+const { decryptQueryParameter } = require("../utils/crypto");
 
 const router = express.Router();
 
@@ -8,34 +13,35 @@ const router = express.Router();
  * Email tracking route
  * Handles campaign tracking and serves a transparent pixel
  */
-router.get("/content", apiLimiter, async (req, res) => {
+router.get("/content/:data", apiLimiter, async (req, res) => {
   console.log("Inside content route");
-  const { encryptedId } = req.query;
+  const { data } = req.params;
 
   try {
-    // Call service to get the tracking pixel
-    const pixelBuffer = await serveTrackingPixel(encryptedId);
+    const decryptedData = decryptQueryParameter(data);
+    console.log("🚀 ~ router.get ~ decryptedData:", decryptedData);
+    // Parse the decrypted data into an object
+    const { campaignId, offerId } = querystring.parse(decryptedData);
 
-    // Respond with the transparent pixel
-    res.writeHead(200, {
-      "Content-Type": "image/gif",
-      "Content-Length": pixelBuffer.length,
-    });
-    console.log("here");
-    res.end(pixelBuffer);
+    // Log and send response
+    console.log("Campaign ID:", campaignId);
+    console.log("Offer ID:", offerId);
+
+    // Serve the transparent pixel
+    servePixel(res);
+
+    // If valid data is found, update the database asynchronously
+    if (campaignId && offerId) {
+      updateTrackingData(campaignId, offerId, req);
+    } else {
+      console.warn("Invalid Request: Missing campaignId or offerId", {
+        campaignId,
+        offerId,
+      });
+    }
   } catch (err) {
     console.error("Error serving tracking pixel:", err.message);
-
-    // Always return the transparent pixel (even for errors)
-    const fallbackPixel = Buffer.from(
-      "R0lGODlhAQABAAAAACwAAAAAAQABAAA=",
-      "base64"
-    );
-    res.writeHead(200, {
-      "Content-Type": "image/gif",
-      "Content-Length": fallbackPixel.length,
-    });
-    res.end(fallbackPixel);
+    servePixel(res);
   }
 });
 
