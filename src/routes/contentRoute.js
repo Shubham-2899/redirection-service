@@ -32,6 +32,8 @@ router.get("/content/:data", apiLimiter, async (req, res) => {
 
     // Get the IP address of the request
     const ip = req.ip;
+    const ips = req.ips;
+    console.log("🚀 ~ router.get ~ ips:", ips);
 
     // If valid data is found, update the database asynchronously
     if (campaignId && offerId) {
