@@ -10,6 +10,9 @@ const path = require("path");
 // Create Express app
 const app = express();
 
+// Trust the proxy headers
+app.set("trust proxy", true);
+
 // Middleware to parse JSON bodies
 app.use(express.json());
 

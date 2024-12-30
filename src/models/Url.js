@@ -15,6 +15,7 @@ const UrlSchema = new mongoose.Schema({
     },
   ],
   clickCount: { type: Number, default: 0 },
+  openRate: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model("Url", UrlSchema);
