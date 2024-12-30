@@ -23,30 +23,28 @@ function servePixel(res) {
  */
 async function updateTrackingData(campaignId, offerId, ipAddress) {
   try {
-    const key = `${campaignId}:${offerId}:${ipAddress}`;
+    // const key = `${campaignId}:${offerId}:${ipAddress}`;
+    // console.log("🚀 ~ updateTrackingData ~ key:", key);
+    // // Check if this IP has already opened the email (using a unique key for campaignId, offerId, and IP)
+    // const hasOpened = cache.get(key);
+    // console.log("🚀 ~ updateTrackingData ~ hasOpened:", hasOpened);
+    // if (!hasOpened) {
+    const urlRecord = await Url.findOne({ campaignId, offerId });
 
-    console.log("🚀 ~ updateTrackingData ~ key:", key);
-    // Check if this IP has already opened the email (using a unique key for campaignId, offerId, and IP)
-    const hasOpened = cache.get(key);
-    console.log("🚀 ~ updateTrackingData ~ hasOpened:", hasOpened);
+    if (urlRecord) {
+      console.log("Valid campaign and offer found. Updating DB...");
 
-    if (!hasOpened) {
-      const urlRecord = await Url.findOne({ campaignId, offerId });
+      // Increment the open rate
+      await Url.updateOne({ _id: urlRecord._id }, { $inc: { openRate: 1 } });
 
-      if (urlRecord) {
-        console.log("Valid campaign and offer found. Updating DB...");
-
-        // Increment the open rate
-        await Url.updateOne({ _id: urlRecord._id }, { $inc: { openRate: 1 } });
-
-        console.log("Open rate updated.");
-        cache.set(key, "opened");
-      } else {
-        console.warn("Invalid campaignId or offerId. No update performed.");
-      }
+      console.log("Open rate updated.");
+      // cache.set(key, "opened");
     } else {
-      console.log("This IP has already opened the email. No update performed.");
+      console.warn("Invalid campaignId or offerId. No update performed.");
     }
+    // } else {
+    //   console.log("This IP has already opened the email. No update performed.");
+    // }
   } catch (error) {
     console.error("Error updating DB:", error.message);
   }
