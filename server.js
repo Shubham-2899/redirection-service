@@ -1,3 +1,6 @@
+//Older Server.js file, not in use keeping it for reference
+//Todo : remove once service is stable
+
 const express = require("express");
 const mongoose = require("mongoose");
 const NodeCache = require("node-cache");

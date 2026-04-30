@@ -25,8 +25,8 @@ router.get("/unsubscribe", (req, res) => {
   res.render("unsubscribe"); // Render unsubscribe page
 });
 
-// Route for displaying unsubscribe page
-router.get("/content/*", contentRoute);
+// Route for displaying tracking pixel page
+router.use("/content", contentRoute);
 
 // Route for displaying main page
 router.get("/", (req, res) => {
