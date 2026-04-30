@@ -1,2 +1,11 @@
 node_modules
 npm-debug.log
+.env
+.env.local
+.git
+.gitignore
+README.md
+docs/
+Dockerfile
+docker-compose.yml
+.dockerignore
