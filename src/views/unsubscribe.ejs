@@ -100,7 +100,7 @@
     <!-- Include reCAPTCHA v3 script -->
     <script
       nonce="<%= nonce %>"
-      src="https://www.google.com/recaptcha/api.js?render=6LfQp1sqAAAAALsJEpZYpcAJNrOzA0WXt8axFXqF"
+      src="https://www.google.com/recaptcha/api.js?render=6LdHetUsAAAAAJGbjm1EHF-D5uiw1vEFDYq1fW7x"
     ></script>
   </head>
   <body>
@@ -149,7 +149,7 @@
           // Trigger reCAPTCHA v3
           grecaptcha.ready(async function () {
             const recaptchaToken = await grecaptcha.execute(
-              "6LfQp1sqAAAAALsJEpZYpcAJNrOzA0WXt8axFXqF",
+              "6LdHetUsAAAAAJGbjm1EHF-D5uiw1vEFDYq1fW7x",
               {
                 action: "unsubscribe",
               }
@@ -158,6 +158,7 @@
             // Prepare data for submission
             const data = {
               email,
+              honeypot,
               "g-recaptcha-response": recaptchaToken,
             };
 

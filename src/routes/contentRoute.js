@@ -13,7 +13,7 @@ const router = express.Router();
  * Email tracking route
  * Handles campaign tracking and serves a transparent pixel
  */
-router.get("/content/:data", apiLimiter, async (req, res) => {
+router.get("/:data", apiLimiter, async (req, res) => {
   console.log("Inside content route");
   const { data } = req.params;
 
@@ -22,6 +22,7 @@ router.get("/content/:data", apiLimiter, async (req, res) => {
     console.log("🚀 ~ router.get ~ decryptedData:", decryptedData);
     // Parse the decrypted data into an object
     const { campaignId, offerId } = querystring.parse(decryptedData);
+    console.log(`🚀 ~ { campaignId, offerId }:`, { campaignId, offerId })
 
     // Log and send response
     console.log("Campaign ID:", campaignId);

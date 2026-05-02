@@ -1,0 +1,21 @@
+services:
+  redirection-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mms-redirection-service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    
+    env_file:
+      - .env
+
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+    volumes:
+      - ./logs:/app/logs
