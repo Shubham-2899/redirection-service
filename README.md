@@ -125,110 +125,85 @@ pm2 save
 pm2 startup
 ```
 
-### Option 2: Docker Deployment
+### Option 2: Multi-Container Docker Deployment
 
-**Create `docker-compose.yml`:**
+The redirection service comes with a highly optimized, production-ready multi-container setup in `docker-compose.yml` that spins up both the **Node.js Application** and a local, persistent **MongoDB Database**.
 
-```yaml
-services:
-  redirection-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mms-redirection-service
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-  
-    env_file:
-      - .env
+#### Features:
+- **Zero-Setup Database** — Automatically spins up MongoDB version 6.0 in an isolated network.
+- **Service Dependency & Sequencing** — Node.js service is configured to wait until MongoDB is fully healthy before starting.
+- **Data Persistence** — Utilizes docker-named volumes to persist database records across container lifecycles.
+- **Isolated Communication** — Containers communicate on a dedicated secure bridge network (`mms-network`).
 
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-
-    volumes:
-      - ./logs:/app/logs
-```
-
-**Update `Dockerfile` (if needed):**
-
-```dockerfile
-FROM node:18-alpine
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy source code
-COPY . .
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-
-# Change ownership
-RUN chown -R nodejs:nodejs /app
-USER nodejs
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-
-# Start the application
-CMD ["node", "src/server1.js"]
-```
-
-**Deploy with Docker:**
+**Run the service locally with Docker Compose:**
 
 ```bash
-# Clone and setup
+# 1. Clone the repository and navigate into it
 git clone <repository-url>
 cd redirection-service
 
-# Create .env file with your configuration
+# 2. Set up the environment variables
+# Copy .env.example to .env and configure the variables
 cp .env.example .env
-nano .env
 
-# Build and start
-docker compose up -d
-
-# View logs
-docker compose logs -f redirection-service
-
-# Stop service
-docker compose down
+# Note: If you want to use the local MongoDB container (included in docker-compose.yml),
+# set: DB_CONNECTION_STRING=mongodb://mongodb:27017/short-url
+# If you want to use a remote database like MongoDB Atlas, set it to your cluster URI.
 ```
 
-**Docker Management Commands:**
+**Common Docker Compose commands:**
 
 ```bash
-# View running containers
-docker ps
-
-# View logs
-docker logs mms-redirection-service
-
-# Restart service
-docker restart mms-redirection-service
-
-# Update service
-git pull
-docker compose build
+# Start all services in the background (detached mode)
 docker compose up -d
 
-# Health check
-docker exec mms-redirection-service node -e "require('http').get('http://localhost:3000/', (res) => { console.log('Status:', res.statusCode) })"
+# View live container logs for the application
+docker compose logs -f redirection-service
+
+# View live logs for all services (app + db)
+docker compose logs -f
+
+# Check running containers and health status
+docker compose ps
+
+# Stop all services and preserve data
+docker compose down
+
+# Stop services and remove volumes (wipes database data)
+docker compose down -v
 ```
+
+---
+
+## GitHub Actions CI/CD Pipeline
+
+The repository includes a modern, zero-config automated **CI/CD Pipeline** defined in `.github/workflows/ci-cd.yml` utilizing **GitHub Actions** and **GitHub Container Registry (GHCR)**.
+
+### Pipeline Workflow:
+
+```mermaid
+graph TD
+    A[Git Push / PR to master] --> B[CI Job: Check Syntax]
+    B --> C[CI Job: Run Unit Tests]
+    C --> D[CI Job: Docker Build Smoke Test]
+    D --> E{Is Push to master?}
+    E -- Yes --> F[CD Job: Login to GHCR]
+    F --> G[CD Job: Build & Publish Production Image]
+    E -- No (PR) --> H[Pipeline Green / Ready to Merge]
+```
+
+### 1. Continuous Integration (CI)
+Triggered on every `push` and `pull_request` targeting the `master` branch:
+- **Node.js Setup & Caching** — Boots up Node 18, uses standard `npm ci` for lockfile integrity, and caches npm packages for optimal speed.
+- **Syntax Validation** — Instantly runs a native JavaScript syntax check (`node --check`) across all project files to detect bugs early.
+- **Unit Testing** — Automatically runs the test suite (`npm test`) using Node.js's native test runner (zero external dependencies like Jest needed!).
+- **Docker Build Smoke Test** — Proactively builds the Dockerfile image without publishing it, ensuring no syntax/dependency regressions break the image.
+
+### 2. Continuous Deployment (CD)
+Triggered automatically on direct `push` or `merge` to the `master` branch, provided the CI phase succeeds:
+- **Zero-Config Auth** — Securely authenticates into the built-in **GitHub Container Registry (GHCR)** using GitHub's native `secrets.GITHUB_TOKEN`.
+- **Dynamic Tagging** — Labels and tags images automatically using the Git commit SHA (e.g. `ghcr.io/shubham-2899/redirection-service:sha-xxxx`) and `latest`.
+- **Global Availability** — Publishes the production-ready Docker image directly to your repository's packages, ready for immediate pull-down on your web server.
 
 ### Nginx Configuration
 
