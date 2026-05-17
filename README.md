@@ -183,24 +183,24 @@ The repository includes a modern, zero-config automated **CI/CD Pipeline** defin
 
 ```mermaid
 graph TD
-    A[Git Push / PR to master] --> B[CI Job: Check Syntax]
+    A[Git Push / PR to main] --> B[CI Job: Check Syntax]
     B --> C[CI Job: Run Unit Tests]
     C --> D[CI Job: Docker Build Smoke Test]
-    D --> E{Is Push to master?}
+    D --> E{Is Push to main?}
     E -- Yes --> F[CD Job: Login to GHCR]
     F --> G[CD Job: Build & Publish Production Image]
     E -- No (PR) --> H[Pipeline Green / Ready to Merge]
 ```
 
 ### 1. Continuous Integration (CI)
-Triggered on every `push` and `pull_request` targeting the `master` branch:
+Triggered on every `push` and `pull_request` targeting the `main` branch:
 - **Node.js Setup & Caching** — Boots up Node 18, uses standard `npm ci` for lockfile integrity, and caches npm packages for optimal speed.
 - **Syntax Validation** — Instantly runs a native JavaScript syntax check (`node --check`) across all project files to detect bugs early.
 - **Unit Testing** — Automatically runs the test suite (`npm test`) using Node.js's native test runner (zero external dependencies like Jest needed!).
 - **Docker Build Smoke Test** — Proactively builds the Dockerfile image without publishing it, ensuring no syntax/dependency regressions break the image.
 
 ### 2. Continuous Deployment (CD)
-Triggered automatically on direct `push` or `merge` to the `master` branch, provided the CI phase succeeds:
+Triggered automatically on direct `push` or `merge` to the `main` branch, provided the CI phase succeeds:
 - **Zero-Config Auth** — Securely authenticates into the built-in **GitHub Container Registry (GHCR)** using GitHub's native `secrets.GITHUB_TOKEN`.
 - **Dynamic Tagging** — Labels and tags images automatically using the Git commit SHA (e.g. `ghcr.io/shubham-2899/redirection-service:sha-xxxx`) and `latest`.
 - **Global Availability** — Publishes the production-ready Docker image directly to your repository's packages, ready for immediate pull-down on your web server.
