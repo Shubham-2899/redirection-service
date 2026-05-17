@@ -1,4 +1,27 @@
+version: '3.8'
+
 services:
+  # Local MongoDB database service for persistent storage
+  mongodb:
+    image: mongo:6.0-jammy
+    container_name: mms-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=short-url
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - mms-network
+
+  # Redirection Service Node.js application
   redirection-service:
     build:
       context: .
@@ -7,15 +30,26 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
-    
     env_file:
       - .env
-
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)}).on('error', () => process.exit(1))"]
       interval: 30s
       timeout: 3s
       retries: 3
+    networks:
+      - mms-network
 
-    volumes:
-      - ./logs:/app/logs
+# Networks to isolate container communication
+networks:
+  mms-network:
+    driver: bridge
+
+# Named volumes for data persistence
+volumes:
+  mongodb_data:
