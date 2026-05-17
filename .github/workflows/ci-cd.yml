@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 # Grant GITHUB_TOKEN write access to packages for GHCR publication
 permissions:
@@ -54,7 +54,7 @@ jobs:
   cd:
     name: Continuous Deployment (GHCR Build & Push)
     needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
