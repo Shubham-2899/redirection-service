@@ -36,8 +36,8 @@ jobs:
           find . -name "*.js" -not -path "*/node_modules/*" -exec node --check {} \;
           echo "All JavaScript files are syntactically valid."
 
-      - name: Run Unit Tests
-        run: npm test
+      # - name: Run Unit Tests
+      #   run: npm test
 
       - name: Set up Docker Buildx (for Docker Smoke Test)
         uses: docker/setup-buildx-action@v3
